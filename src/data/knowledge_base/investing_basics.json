@@ -1,0 +1,128 @@
+[
+  {
+    "id": "stocks-101",
+    "category": "stocks",
+    "title": "Introduction to Stocks",
+    "content": "A stock represents ownership in a company. When you buy a share of stock, you become a part-owner (shareholder) of that company. Stocks are traded on exchanges like the NYSE and NASDAQ. Stock prices fluctuate based on company performance, economic conditions, and investor sentiment. Common stocks give voting rights and potential dividends. Preferred stocks have priority on dividends but usually no voting rights. Stocks historically offer higher returns than bonds over long periods but come with higher short-term volatility. The S&P 500 index, which tracks 500 large US companies, has averaged about 10% annual returns historically."
+  },
+  {
+    "id": "bonds-101",
+    "category": "bonds",
+    "title": "Understanding Bonds",
+    "content": "A bond is a loan you make to a government or corporation. In return, the issuer pays you interest (called the coupon) periodically and returns the principal at maturity. Bond types include Treasury bonds (US government, very safe), municipal bonds (state/local governments, tax-advantaged), corporate bonds (companies, higher yield but more risk), and savings bonds (retail investors). Bond prices move inversely to interest rates: when rates rise, bond prices fall and vice versa. Bonds are generally less volatile than stocks and provide portfolio stability. Investment-grade bonds are rated BBB or higher by credit agencies."
+  },
+  {
+    "id": "etfs-101",
+    "category": "etfs",
+    "title": "Exchange-Traded Funds (ETFs)",
+    "content": "An ETF is a collection of securities that trades on an exchange like a stock. ETFs typically track an index (like the S&P 500), sector, commodity, or other asset. Key advantages include low expense ratios (often 0.03%–0.20%), instant diversification, tax efficiency, and intraday trading. Popular ETFs include SPY (S&P 500), QQQ (Nasdaq 100), VTI (total US market), BND (total bond market), and GLD (gold). ETFs differ from mutual funds in that they trade continuously during market hours. Index ETFs are passively managed, keeping costs low. Most financial experts recommend index ETFs for long-term investors."
+  },
+  {
+    "id": "diversification-101",
+    "category": "portfolio",
+    "title": "Diversification and Asset Allocation",
+    "content": "Diversification means spreading investments across different assets to reduce risk. The principle is that different assets react differently to market events. Asset allocation refers to how you divide your portfolio among stocks, bonds, cash, and other assets. A common guideline is the '100 minus age' rule: subtract your age from 100 to get your stock allocation percentage. Modern Portfolio Theory (MPT) shows that a diversified portfolio can achieve better risk-adjusted returns. Key diversification dimensions include: asset classes (stocks/bonds/real estate), geography (US/international/emerging markets), sectors (tech/healthcare/finance), and company size (large-cap/mid-cap/small-cap)."
+  },
+  {
+    "id": "compound-interest",
+    "category": "fundamentals",
+    "title": "The Power of Compound Interest",
+    "content": "Compound interest is interest calculated on both the principal and accumulated interest. Einstein reportedly called it the eighth wonder of the world. Formula: A = P(1 + r/n)^(nt), where P is principal, r is annual rate, n is compounds per year, t is years. Example: $10,000 at 7% for 30 years grows to ~$76,123. The Rule of 72: divide 72 by your annual return rate to estimate years to double money (at 8%, money doubles in 9 years). Starting early is crucial: $1,000 invested at 20 grows to 7x more than the same amount invested at 40. Time in market beats timing the market."
+  },
+  {
+    "id": "risk-tolerance",
+    "category": "planning",
+    "title": "Understanding Risk Tolerance",
+    "content": "Risk tolerance is your ability and willingness to endure investment losses in exchange for potential gains. It depends on time horizon (longer = more risk capacity), financial situation (emergency fund, income stability), and emotional comfort with volatility. Risk categories: Conservative (preserving capital, mostly bonds), Moderate (balanced growth, 60/40 stocks/bonds), Aggressive (maximum growth, mostly stocks). Younger investors typically have higher risk tolerance due to longer time horizons. During market downturns, aggressive investors may see 40%+ drops. Risk capacity (financial ability) vs risk tolerance (emotional comfort) are different. Never invest money you may need within 1-3 years."
+  },
+  {
+    "id": "401k-ira",
+    "category": "tax",
+    "title": "Retirement Accounts: 401(k) and IRA",
+    "content": "Tax-advantaged retirement accounts are among the most powerful wealth-building tools. 401(k): employer-sponsored plan with 2024 limit of $23,000 ($30,500 if 50+). Traditional 401(k): pre-tax contributions, taxed on withdrawal. Roth 401(k): after-tax contributions, tax-free withdrawals. IRA (Individual Retirement Account): 2024 limit $7,000 ($8,000 if 50+). Traditional IRA: may be tax-deductible, taxed on withdrawal. Roth IRA: after-tax contributions, tax-free growth and withdrawals (income limits apply: phase-out at $146,000-$161,000 single, $230,000-$240,000 married in 2024). Key strategy: always contribute enough to get full employer match (free money!), then maximize Roth IRA, then fill remaining 401(k) space."
+  },
+  {
+    "id": "index-investing",
+    "category": "strategy",
+    "title": "Index Investing and Passive Strategy",
+    "content": "Index investing involves buying funds that replicate a market index. Research consistently shows 80-90% of active fund managers underperform their benchmark index over 10+ years (SPIVA data). Low-cost index funds outperform most actively managed funds after fees. The three-fund portfolio (US stocks, international stocks, bonds) is a simple, proven approach. Recommended by Warren Buffett and John Bogle (Vanguard founder). Key principles: keep costs low (expense ratio under 0.10%), stay diversified, rebalance annually, ignore short-term noise. Dollar-cost averaging (investing fixed amounts regularly) removes timing pressure and reduces average purchase cost."
+  },
+  {
+    "id": "emergency-fund",
+    "category": "planning",
+    "title": "Emergency Fund Basics",
+    "content": "An emergency fund is savings set aside for unexpected expenses. Financial experts recommend 3-6 months of living expenses in liquid, accessible accounts. High-yield savings accounts currently offer 4-5% APY. Money market accounts are another option. Emergency fund uses: job loss, medical emergencies, car/home repairs, unexpected bills. Without an emergency fund, unexpected expenses force debt (credit cards at 20%+ APR). Building steps: start with $1,000 goal, then build to 1 month, then full 3-6 months. Keep it separate from regular checking to avoid temptation. FDIC insurance covers up to $250,000 per depositor per bank."
+  },
+  {
+    "id": "market-cycles",
+    "category": "markets",
+    "title": "Market Cycles and Volatility",
+    "content": "Stock markets move in cycles of expansion, peak, contraction, and trough. Bull market: 20%+ rise from recent lows. Bear market: 20%+ decline from recent highs. Average bear markets last about 9-10 months; average bull markets last about 2.7 years. Market corrections (10%+ drops) happen about once per year on average. Historical S&P 500 drawdowns: 2020 COVID crash -34%, 2008-09 Financial Crisis -57%, 2000-02 Dotcom -49%. Despite all crashes, the market has always recovered to new highs. Market timing is nearly impossible: missing the 10 best days in 20 years cuts returns by more than half. Stay invested and avoid panic selling."
+  },
+  {
+    "id": "dollar-cost-averaging",
+    "category": "strategy",
+    "title": "Dollar-Cost Averaging",
+    "content": "Dollar-cost averaging (DCA) is investing a fixed dollar amount at regular intervals regardless of price. Benefits: removes emotion from investing, automatically buys more shares when prices are low, reduces impact of volatility, builds discipline. Example: investing $500/month in SPY buys more shares when price drops and fewer when it rises, lowering average cost. DCA works well for: 401(k) contributions (automatic DCA), regular investment plans, volatile markets. Lump-sum investing outperforms DCA about 2/3 of the time in rising markets, but DCA reduces regret risk. Best for new investors and those with regular income to invest."
+  },
+  {
+    "id": "expense-ratio",
+    "category": "costs",
+    "title": "Investment Costs and Expense Ratios",
+    "content": "Expense ratio is the annual fee charged by a fund, expressed as a percentage. A 1% expense ratio means you pay $10/year per $1,000 invested. Over 30 years, a 1% fee vs 0.05% fee on $100,000 growing at 7% costs you ~$180,000 in lost returns. Low-cost options: Vanguard VTI (0.03%), Fidelity ZERO funds (0.00%), Schwab US Broad Market (0.03%). Avoid: actively managed funds with 1%+ fees, 12b-1 fees, load funds (sales commissions). Other costs to minimize: trading commissions (now $0 at most brokers), bid-ask spreads (low for liquid ETFs), capital gains taxes (use tax-advantaged accounts). Always check total expense ratio (TER)."
+  },
+  {
+    "id": "rebalancing",
+    "category": "portfolio",
+    "title": "Portfolio Rebalancing",
+    "content": "Rebalancing restores your target asset allocation by selling outperformers and buying underperformers. Example: target 70/30 stocks/bonds. After a stock rally, portfolio shifts to 80/20. Rebalancing sells stocks and buys bonds to restore 70/30. Benefits: maintains risk level, enforces buy-low-sell-high discipline, reduces correlation risk. Rebalancing methods: calendar rebalancing (annually or quarterly), threshold rebalancing (when allocation drifts 5%+ from target). In taxable accounts, use new contributions to rebalance to minimize taxes. In tax-advantaged accounts, rebalance freely. Transaction costs and taxes must be considered. Over-rebalancing can hurt returns."
+  },
+  {
+    "id": "tax-loss-harvesting",
+    "category": "tax",
+    "title": "Tax-Loss Harvesting",
+    "content": "Tax-loss harvesting sells investments at a loss to offset capital gains taxes. Rules: short-term losses offset short-term gains first (taxed as ordinary income), long-term losses offset long-term gains (taxed at 0%, 15%, or 20%). Up to $3,000 of net losses can offset ordinary income per year; excess carries forward. Wash-sale rule: you cannot buy the same or 'substantially identical' security within 30 days before or after the sale. Work around: sell SPY and buy VOO or VTI (same exposure, different funds). Best for: taxable accounts with gains, high-income investors in higher tax brackets. Not beneficial in tax-advantaged accounts (IRA, 401k)."
+  },
+  {
+    "id": "real-estate-investing",
+    "category": "alternatives",
+    "title": "Real Estate Investing Basics",
+    "content": "Real estate offers income (rent), appreciation, leverage, and tax benefits. Options: direct ownership (rental properties), REITs (Real Estate Investment Trusts traded like stocks), real estate ETFs, crowdfunding platforms. REITs must distribute 90% of taxable income as dividends. REIT types: residential, commercial, industrial, healthcare, data centers. Benefits vs stocks: lower correlation, inflation hedge, tangible asset, leverage. Challenges: illiquidity (direct ownership), management burden, high transaction costs, concentration risk. REITs like VNQ (Vanguard Real Estate ETF) offer easy exposure. REITs are taxed as ordinary income (not qualified dividends), best held in tax-advantaged accounts."
+  },
+  {
+    "id": "behavioral-finance",
+    "category": "psychology",
+    "title": "Behavioral Finance and Common Biases",
+    "content": "Behavioral finance studies how psychology affects financial decisions. Common biases: Loss aversion (losses feel twice as painful as equivalent gains feel good), Recency bias (overweighting recent events), Confirmation bias (seeking information that confirms existing beliefs), Herding (following crowd into/out of investments), Overconfidence (overestimating one's stock-picking ability), Anchoring (fixating on purchase price). How to overcome: automate investments, set rules in advance, focus on long-term goals, avoid checking portfolio daily, work with a fee-only financial advisor, keep an investment policy statement. Awareness of biases doesn't eliminate them; systems and automation help more than willpower."
+  },
+  {
+    "id": "financial-goals",
+    "category": "planning",
+    "title": "Setting SMART Financial Goals",
+    "content": "Effective financial goals are Specific, Measurable, Achievable, Relevant, and Time-bound. Short-term goals (1-3 years): emergency fund, vacation, car down payment. Medium-term goals (3-10 years): home down payment, education funding, starting a business. Long-term goals (10+ years): retirement, financial independence. Process: define the goal amount, set a target date, calculate required monthly savings, choose appropriate investment vehicles. Retirement calculation: need 25x annual expenses (4% safe withdrawal rate). Example: $50,000/year lifestyle needs $1.25M portfolio. Use compound interest formula to determine monthly savings needed. Review and adjust goals annually."
+  },
+  {
+    "id": "crypto-overview",
+    "category": "alternatives",
+    "title": "Cryptocurrency: Basics and Risks",
+    "content": "Cryptocurrency is a digital or virtual currency secured by cryptography. Bitcoin (BTC) launched in 2009 as the first decentralized digital currency. Ethereum (ETH) adds programmable smart contracts. Risks: extreme volatility (70-90% drawdowns common), regulatory uncertainty, security risks (exchange hacks, lost keys), no underlying cash flows (unlike stocks/bonds). Bitcoin spot ETFs approved in 2024 (BlackRock's IBIT, Fidelity's FBTC). Most financial advisors suggest limiting crypto to 1-5% of portfolio if any. Crypto gains taxed as property: short-term (<1 year) at ordinary income rates, long-term at capital gains rates. Never invest more than you can afford to lose entirely."
+  },
+  {
+    "id": "inflation-hedging",
+    "category": "strategy",
+    "title": "Inflation and Inflation Hedging",
+    "content": "Inflation erodes purchasing power over time. US CPI averaged about 3% annually historically (2-4%). At 3% inflation, $1 today buys only $0.74 in 10 years. Inflation hedges: stocks (companies raise prices, protecting real earnings), real estate (rents and values often rise with inflation), TIPS (Treasury Inflation-Protected Securities, principal adjusts with CPI), commodities (especially gold, energy), I-Bonds (government bonds indexed to inflation, $10,000/year limit). Bonds are hurt by inflation (fixed payments lose real value). Cash is the worst inflation hedge. Equities have historically been the best long-term inflation hedge, averaging returns well above inflation."
+  },
+  {
+    "id": "insurance-basics",
+    "category": "planning",
+    "title": "Insurance as Financial Protection",
+    "content": "Insurance transfers financial risk from you to an insurance company. Essential types: Health insurance (protects against medical bankruptcy), Life insurance (replaces income for dependents; term life is best value for most), Disability insurance (protects income if unable to work; 1 in 4 workers become disabled before retirement), Auto insurance (legally required, protects against liability), Homeowners/Renters insurance (protects assets and liability). Life insurance: term vs permanent. Term life: pure protection for 10-30 years. Whole/universal life: expensive, complex, generally not recommended as investment. Rule: buy insurance for catastrophic losses you cannot afford; self-insure small risks through emergency fund."
+  },
+  {
+    "id": "net-worth",
+    "category": "fundamentals",
+    "title": "Calculating and Growing Net Worth",
+    "content": "Net worth = Total Assets - Total Liabilities. Assets: cash, investments, retirement accounts, real estate, vehicles (at market value). Liabilities: mortgage, student loans, car loans, credit card debt, personal loans. Tracking net worth monthly helps see financial progress. Milestones: positive net worth (assets > debts), $100K (first major milestone, hardest to reach), $1M (millionaire status, gets easier as compounding accelerates). Strategies to grow net worth: increase income, reduce expenses, invest the difference, eliminate high-interest debt, avoid lifestyle inflation. Median US household net worth (2022 Federal Reserve Survey): $192,700. Average: $1,063,700 (skewed by wealthy households)."
+  }
+]
