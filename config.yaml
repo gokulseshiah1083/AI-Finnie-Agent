@@ -14,7 +14,9 @@ rag:
 market_data:
   cache_ttl_minutes: 30
   default_symbols: ["SPY", "QQQ", "BND", "GLD", "VTI"]
-  yfinance_timeout: 10
+  alpha_vantage_base_url: "https://www.alphavantage.co/query"
+  alpha_vantage_timeout: 10
+  news_limit: 10
 
 agents:
   max_iterations: 3
