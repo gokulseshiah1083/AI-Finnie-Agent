@@ -54,6 +54,14 @@ streamlit run src/web_app/app.py
 pytest tests/ -v
 ```
 
+### 5. Deploy to Streamlit Community Cloud
+- Push this repository to GitHub.
+- In Streamlit Cloud, create a new app from the repo.
+- Set the main file to `app.py` or `streamlit_app.py`.
+- Add these secrets in the Streamlit Cloud app settings:
+  - `ANTHROPIC_API_KEY`
+  - `ALPHA_VANTAGE_API_KEY` (optional)
+
 ## Project Structure
 
 ```

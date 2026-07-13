@@ -1,0 +1,23 @@
+Component	Files	Status
+Project scaffold	config.yaml, requirements.txt, .env.example	✅
+Core layer	state.py, llm_client.py, base_agent.py, config.py	✅
+RAG system	knowledge_base.py + 20 financial articles (FAISS + sentence-transformers)	✅
+Finance Q&A Agent	finance_qa_agent.py — RAG-grounded education	✅
+Portfolio Agent	portfolio_agent.py — diversification score, allocation metrics	✅
+Market Agent	market_agent.py — live data via yfinance, auto ticker extraction	✅
+Goal Planning Agent	goal_planning_agent.py — compound interest projections	✅
+News Agent	news_agent.py — yfinance news summarization	✅
+Tax Agent	tax_agent.py — RAG-grounded tax education	✅
+LangGraph workflow	classifier.py + graph.py — rule-based routing → StateGraph	✅
+Streamlit UI	app.py — 4 tabs: Chat, Portfolio, Market, Goals	✅
+Tests	23 tests across classifier, portfolio, goals, RAG	23/23 passing ✅
+
+
+All 3 commits are on GitHub. The project is live at github.com/gokulseshiah1083/AI-Finance-Assistance.
+
+Here's what was pushed — 39 files, 1647 lines of code:
+
+Commit	Description
+cca4b90	Original empty repo README (from GitHub)
+900743b	Full project — all 6 agents, RAG, workflow, UI, tests
+303d642	Merge — kept our detailed README

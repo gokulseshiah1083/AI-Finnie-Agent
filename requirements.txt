@@ -16,3 +16,5 @@ requests>=2.32.0
 beautifulsoup4>=4.12.0
 pytest>=8.3.0
 pytest-asyncio>=0.24.0
+# Needed by sentence-transformers / transformers import path in hosted runtimes
+torchvision>=0.24.0
