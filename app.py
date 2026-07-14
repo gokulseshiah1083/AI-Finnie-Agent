@@ -17,8 +17,8 @@ def _load_secrets() -> None:
             value = st.secrets.get(key)
         except Exception:
             value = None
-        if value:
-            os.environ[key] = str(value)
+        if isinstance(value, str) and value.strip():
+            os.environ[key] = value.strip()
 
 
 _load_secrets()
