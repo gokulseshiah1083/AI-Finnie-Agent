@@ -1,0 +1,132 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  AI Finance Assistant - Streamlit app running on AWS App Runner, backed by
+  an image in Amazon ECR, with secrets pulled from SSM Parameter Store.
+
+Parameters:
+  ServiceName:
+    Type: String
+    Default: ai-finance-assistant
+    Description: Name of the App Runner service.
+
+  ImageUri:
+    Type: String
+    Description: >
+      Full ECR image URI including tag, e.g.
+      123456789012.dkr.ecr.us-east-1.amazonaws.com/ai-finance-assistant:latest
+
+  AnthropicApiKeyParamName:
+    Type: String
+    Default: /ai-finance-assistant/ANTHROPIC_API_KEY
+    Description: SSM Parameter Store name (SecureString) holding the Anthropic API key.
+
+  AlphaVantageApiKeyParamName:
+    Type: String
+    Default: /ai-finance-assistant/ALPHA_VANTAGE_API_KEY
+    Description: SSM Parameter Store name (SecureString) holding the Alpha Vantage API key.
+
+  Cpu:
+    Type: String
+    Default: "1 vCPU"
+    AllowedValues: ["0.25 vCPU", "0.5 vCPU", "1 vCPU", "2 vCPU", "4 vCPU"]
+
+  Memory:
+    Type: String
+    Default: "2 GB"
+    AllowedValues: ["0.5 GB", "1 GB", "2 GB", "3 GB", "4 GB", "6 GB", "8 GB", "10 GB", "12 GB"]
+
+Resources:
+  AppRunnerECRAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ServiceName}-ecr-access-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: build.apprunner.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
+
+  AppRunnerInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ServiceName}-instance-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: tasks.apprunner.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ReadAppSecrets
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameters
+                  - ssm:GetParameter
+                Resource:
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${AnthropicApiKeyParamName}"
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${AlphaVantageApiKeyParamName}"
+              - Effect: Allow
+                Action: kms:Decrypt
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    kms:ViaService: !Sub "ssm.${AWS::Region}.amazonaws.com"
+
+  AppRunnerService:
+    Type: AWS::AppRunner::Service
+    Properties:
+      ServiceName: !Ref ServiceName
+      SourceConfiguration:
+        AutoDeploymentsEnabled: false
+        AuthenticationConfiguration:
+          AccessRoleArn: !GetAtt AppRunnerECRAccessRole.Arn
+        ImageRepository:
+          ImageIdentifier: !Ref ImageUri
+          ImageRepositoryType: ECR
+          ImageConfiguration:
+            Port: "8501"
+            RuntimeEnvironmentSecrets:
+              - Name: ANTHROPIC_API_KEY
+                Value: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${AnthropicApiKeyParamName}"
+              - Name: ALPHA_VANTAGE_API_KEY
+                Value: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${AlphaVantageApiKeyParamName}"
+      InstanceConfiguration:
+        Cpu: !Ref Cpu
+        Memory: !Ref Memory
+        InstanceRoleArn: !GetAtt AppRunnerInstanceRole.Arn
+      HealthCheckConfiguration:
+        Protocol: HTTP
+        Path: /_stcore/health
+        Interval: 10
+        Timeout: 5
+        HealthyThreshold: 1
+        UnhealthyThreshold: 5
+      NetworkConfiguration:
+        IngressConfiguration:
+          IsPubliclyAccessible: true
+
+  # Groups this stack under the "Application" you already created in AWS
+  # myApplications, so its resources show up together for cost/ops tracking.
+  AppRegistryApplicationStackAssociation:
+    Type: AWS::ServiceCatalogAppRegistry::ResourceAssociation
+    Properties:
+      Application: arn:aws:servicecatalog:us-east-1:492631768464:/applications/07gwwp5nztydo1zugmu74b705r
+      Resource:
+        Ref: AWS::StackId
+      ResourceType: CFN_STACK
+
+Outputs:
+  ServiceUrl:
+    Description: Public HTTPS URL of the deployed Streamlit app
+    Value: !Sub "https://${AppRunnerService.ServiceUrl}"
+  ServiceArn:
+    Description: ARN of the App Runner service
+    Value: !Ref AppRunnerService
