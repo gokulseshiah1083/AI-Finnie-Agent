@@ -5,8 +5,10 @@ from src.core.config import CONFIG, get_anthropic_api_key
 
 def resolve_model_name(model_name: str) -> str:
     aliases = {
-        "claude-3-haiku": "claude-3-5-haiku-latest",
-        "claude-sonnet-4-6": "claude-3-5-sonnet-latest",
+        "claude-3-haiku": "claude-opus-4-8",
+        "claude-sonnet-4-6": "claude-opus-4-8",
+        "claude-3-5-haiku-latest": "claude-opus-4-8",
+        "claude-3-7-sonnet-latest": "claude-opus-4-8",
     }
     return aliases.get(model_name, model_name)
 
@@ -29,7 +31,6 @@ def call_llm(system_prompt: str, user_message: str, conversation_history: list |
         response = client.messages.create(
             model=resolve_model_name(cfg["model"]),
             max_tokens=cfg["max_tokens"],
-            temperature=cfg["temperature"],
             system=system_prompt,
             messages=messages,
         )
