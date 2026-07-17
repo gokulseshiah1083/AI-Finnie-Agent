@@ -84,8 +84,12 @@ class GoalPlanningAgent(BaseAgent):
         history = self._extract_history(state)
 
         goal_context = ""
-        goal_data = state.get("market_data", {}).get("goal_params")
-        if goal_data:
+        market_data = state.get("market_data")
+        if not isinstance(market_data, dict):
+            market_data = {}
+
+        goal_data = market_data.get("goal_params")
+        if isinstance(goal_data, dict):
             try:
                 projection = project_goal(**goal_data)
                 goal_context = f"Goal Projection Results:\n{json.dumps(projection, indent=2)}\n\n"

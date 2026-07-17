@@ -87,13 +87,16 @@ def run_query(
     market_data: dict | None = None,
 ) -> dict:
     graph = get_graph()
+    normalized_portfolio_data = portfolio_data if isinstance(portfolio_data, dict) else None
+    normalized_market_data = market_data if isinstance(market_data, dict) else {}
+
     state: AgentState = {
         "messages": conversation_history or [],
         "user_query": user_query,
         "agent_type": "",
         "rag_context": "",
-        "portfolio_data": portfolio_data,
-        "market_data": market_data,
+        "portfolio_data": normalized_portfolio_data,
+        "market_data": normalized_market_data,
         "response": "",
         "session_id": session_id or str(uuid.uuid4()),
         "error": None,

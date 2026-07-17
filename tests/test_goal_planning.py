@@ -1,5 +1,8 @@
+from unittest.mock import patch
+
 import pytest
-from src.agents.goal_planning_agent import project_goal
+from src.agents.goal_planning_agent import GoalPlanningAgent, project_goal
+from src.workflow.graph import run_query
 
 
 def test_on_track_goal():
@@ -50,3 +53,31 @@ def test_years_to_goal_calculated():
     )
     assert result["years_to_goal_at_current_rate"] is not None
     assert result["years_to_goal_at_current_rate"] > 0
+
+
+def test_goal_agent_handles_none_market_data():
+    agent = GoalPlanningAgent()
+    state = {
+        "user_query": "I want to save for a house",
+        "messages": [],
+        "market_data": None,
+    }
+
+    with patch("src.agents.goal_planning_agent.call_llm", return_value="ok") as mock_call:
+        response = agent._process(state)
+
+    assert response == "ok"
+    mock_call.assert_called_once()
+
+
+def test_run_query_handles_none_market_data_for_goal_planning():
+    with patch("src.agents.goal_planning_agent.call_llm", return_value="ok") as mock_call:
+        result = run_query(
+            user_query="I want to save $100,000 for a house in 7 years. How much should I save each month?",
+            session_id="test-session",
+            market_data=None,
+        )
+
+    assert result["response"].startswith("ok")
+    assert result["agent_used"] == "goal_planning"
+    mock_call.assert_called_once()
