@@ -1,86 +1,133 @@
 # AI Finance Assistant
 
-A production-ready multi-agent financial education system powered by Claude Sonnet and LangGraph.
+AI Finance Assistant is a multi-agent financial education platform designed to help users explore investing, portfolio analysis, market trends, financial planning, and tax concepts through a conversational interface. Built with Python, Streamlit, LangGraph, and large language models, it combines structured financial reasoning with retrieval-augmented guidance.
+
+## Overview
+
+The system is organized around a simple principle: route each user question to the most appropriate specialist, then enrich the response with the right context. This allows the assistant to provide targeted answers instead of relying on a single general-purpose model for every request.
 
 ## Architecture
 
+```text
+User Query
+  ↓
+LangGraph Orchestrator
+  ↓
+Query Classifier
+  ↓
+Specialized Agent
+  ↓
+RAG / Live Market Data / Portfolio Metrics
+  ↓
+LLM Response
+  ↓
+Streamlit Interface
 ```
-User Query → LangGraph Classifier → Specialized Agent → RAG + LLM → Response
+
+## Agent Overview
+
+| Agent | What it does | Sample prompt |
+|-------|--------------|---------------|
+| Finance Q&A | Explains general financial concepts using the knowledge base and retrieval context. | "What is the difference between a Roth IRA and a traditional IRA?" |
+| Portfolio Analysis | Evaluates holdings, asset allocation, diversification, and portfolio balance. | "Analyze my portfolio and tell me whether I am diversified enough." |
+| Market Analysis | Provides market context, stock-related insights, and live market data interpretation. | "How is Apple performing today, and what does its P/E ratio mean?" |
+| Goal Planning | Helps users estimate how much they need to save to reach future financial goals. | "I want to save $100,000 for a house in 7 years. How much should I save each month?" |
+| News Synthesizer | Summarizes recent financial news and explains why it matters to investors. | "Summarize today’s market headlines and explain their impact in simple terms." |
+| Tax Education | Explains tax concepts such as capital gains, dividends, and tax-advantaged accounts. | "How does tax-loss harvesting work?" |
+
+## Workflow
+
+The workflow is designed to be clear and modular:
+
+1. A user submits a question through the Streamlit interface.
+2. The LangGraph orchestrator passes the query to the classifier.
+3. The classifier routes the request to the most relevant agent based on keywords and intent.
+4. The selected agent gathers context from the knowledge base, portfolio data, live market data, or other structured inputs.
+5. The LLM is invoked with that context and the user prompt.
+6. The response is returned to the user with the appropriate agent context.
+
+### Example: Finance question flow
+
+When a user asks, "What is compound interest?", the orchestrator routes the request to the Finance Q&A agent. That agent retrieves relevant financial education content, sends the prompt and context to the LLM, and returns a clear explanation to the user.
+
+## Tech Stack
+
+- **Language**: Python
+- **UI**: Streamlit
+- **Workflow Orchestration**: LangGraph
+- **LLM Integration**: Anthropic model via the configured LLM client
+- **RAG**: FAISS + sentence-transformers
+- **Market Data**: yfinance and other live data sources
+- **Visualization**: Plotly and pandas
+- **Testing**: pytest
+
+## Project Structure
+
+```text
+AI-Finance-Assistance/
+├── app.py                # Entry point for the Streamlit experience
+├── run.py                # Run helper
+├── config.yaml           # Central configuration
+├── requirements.txt      # Python dependencies
+├── src/
+│   ├── agents/           # Specialized agent implementations
+│   ├── core/             # LLM, state, and shared agent logic
+│   ├── data/             # Knowledge base assets
+│   ├── rag/              # Retrieval and knowledge base integration
+│   ├── utils/            # Market data and utility helpers
+│   ├── web_app/          # Streamlit UI components
+│   └── workflow/         # Query classifier and LangGraph graph
+├── tests/                # Unit and integration tests
+└── README.md
 ```
-
-### 6 Specialized Agents
-
-| Agent | Purpose |
-|-------|---------|
-| Finance Q&A | General financial education with RAG |
-| Portfolio Analysis | Holdings metrics, diversification scoring |
-| Market Analysis | Real-time stock data via yfinance |
-| Goal Planning | Financial goal projections with compound interest |
-| News Synthesizer | Financial news summarization |
-| Tax Education | Tax concepts, 401k/IRA, tax-loss harvesting |
-
-### Tech Stack
-
-- **LLM**: Claude Sonnet (`claude-sonnet-4-6`) via Anthropic SDK
-- **Orchestration**: LangGraph `StateGraph`
-- **RAG**: FAISS + `sentence-transformers` (all-MiniLM-L6-v2)
-- **Market Data**: `yfinance` (free, no API key required)
-- **UI**: Streamlit (4 tabs: Chat, Portfolio, Market, Goals)
-- **Knowledge Base**: 20 curated financial education articles
 
 ## Setup
 
 ### 1. Install dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Set your Anthropic API key
+### 2. Configure environment variables
+
+Set your API key for the LLM provider and any optional market data credentials:
+
 ```bash
-cp .env.example .env
-# Edit .env and add your key:
-# ANTHROPIC_API_KEY=sk-ant-...
+export ANTHROPIC_API_KEY="your-key-here"
 ```
 
-### 3. Run the app
+If you are deploying through Streamlit Cloud, add the same values as secrets in your app settings.
+
+### 3. Run the application
+
 ```bash
 python run.py
-# or directly:
+```
+
+Or launch the UI directly:
+
+```bash
 streamlit run src/web_app/app.py
 ```
 
 ### 4. Run tests
+
 ```bash
 pytest tests/ -v
 ```
 
-### 5. Deploy to Streamlit Community Cloud
-- Push this repository to GitHub.
-- In Streamlit Cloud, create a new app from the repo.
-- Set the main file to `app.py` or `streamlit_app.py`.
-- Add these secrets in the Streamlit Cloud app settings:
-  - `ANTHROPIC_API_KEY`
-  - `ALPHA_VANTAGE_API_KEY` (optional)
+## Deployment
 
-## Project Structure
+To deploy the app to Streamlit Community Cloud:
 
-```
-ai_finance_assistant/
-├── src/
-│   ├── agents/          # 6 specialized agents
-│   ├── core/            # State, LLM client, base agent, config
-│   ├── data/            # Knowledge base JSON articles
-│   ├── rag/             # FAISS vector store + retrieval
-│   ├── web_app/         # Streamlit multi-tab interface
-│   ├── utils/           # Market data (yfinance), logging
-│   └── workflow/        # LangGraph graph + query classifier
-├── tests/               # Unit tests (23 tests, 100% pass)
-├── config.yaml          # Centralized configuration
-├── requirements.txt
-└── README.md
-```
+1. Push this repository to GitHub.
+2. Create a new app in Streamlit Cloud.
+3. Set the main file to `app.py` or `streamlit_app.py`.
+4. Add the required secrets:
+   - `ANTHROPIC_API_KEY`
+   - `ALPHA_VANTAGE_API_KEY` (optional)
 
 ## Disclaimer
 
-This tool is for **educational purposes only** and does not constitute financial advice.
-Always consult a qualified financial advisor before making investment decisions.
+This application is intended for educational purposes only. It does not constitute financial advice. Always consult a qualified financial professional before making investment or tax decisions.
