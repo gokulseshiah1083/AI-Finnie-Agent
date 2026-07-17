@@ -1,5 +1,5 @@
 llm:
-  model: "claude-3-haiku"
+  model: "claude-3-5-haiku-latest"
   max_tokens: 2048
   temperature: 0.3
 
