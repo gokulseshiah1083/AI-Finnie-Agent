@@ -4,6 +4,7 @@ from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage, AIMessage
 
 from src.core.state import AgentState
+from src.core.trace import current_trace_id, span, start_trace
 from src.workflow.classifier import classify_query
 from src.agents.finance_qa_agent import FinanceQAAgent
 from src.agents.portfolio_agent import PortfolioAnalysisAgent
@@ -44,6 +45,26 @@ def _make_agent_node(name: str):
     return node
 
 
+def _traced(name: str, fn):
+    """Wrap a graph node in a trace span named `node:<name>`.
+
+    Instrumentation lives here — at registration, in one place — rather than
+    inside each node, so nodes stay testable without the tracing layer.
+    """
+
+    def wrapped(state: AgentState) -> AgentState:
+        with span(f"node:{name}") as s:
+            result = fn(state)
+            if name == "classifier":
+                s["route"] = result.get("agent_type")
+            if result.get("error"):
+                s["node_error"] = result["error"]
+            return result
+
+    wrapped.__name__ = fn.__name__
+    return wrapped
+
+
 def _append_message(state: AgentState) -> AgentState:
     response = state.get("response", "")
     messages = list(state.get("messages", []))
@@ -55,10 +76,10 @@ def _append_message(state: AgentState) -> AgentState:
 def build_graph() -> StateGraph:
     graph = StateGraph(AgentState)
 
-    graph.add_node("classifier", _classify_node)
+    graph.add_node("classifier", _traced("classifier", _classify_node))
     for name in _agents:
-        graph.add_node(name, _make_agent_node(name))
-    graph.add_node("append_message", _append_message)
+        graph.add_node(name, _traced(name, _make_agent_node(name)))
+    graph.add_node("append_message", _traced("append_message", _append_message))
 
     graph.set_entry_point("classifier")
     graph.add_conditional_edges("classifier", _route, {name: name for name in _agents})
@@ -101,8 +122,17 @@ def run_query(
         "session_id": session_id or str(uuid.uuid4()),
         "error": None,
     }
-    result = graph.invoke(state)
+    # One trace per turn: the root `turn` span plus every node and model call
+    # beneath it share this trace_id in logs/trace.jsonl.
+    start_trace()
+    with span("turn", session_id=state["session_id"], user_query=user_query) as s:
+        result = graph.invoke(state)
+        s["agent_used"] = result.get("agent_type")
+        if result.get("error"):
+            s["turn_error"] = result["error"]
+
     return {
+        "trace_id": current_trace_id(),
         "response": result.get("response", ""),
         "agent_used": result.get("agent_type", "unknown"),
         "messages": result.get("messages", []),

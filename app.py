@@ -27,8 +27,8 @@ print(f"[BOOT] app.py starting | cwd={os.getcwd()} | python={sys.version.split()
 # set_page_config MUST be the first Streamlit command, so we call it here in the
 # outer entry point and guard the inner one against a double-call.
 st.set_page_config(
-    page_title="AI Finance Assistant",
-    page_icon="💰",
+    page_title="AI Finnie Agent",
+    page_icon="🪙",
     layout="wide",
     initial_sidebar_state="expanded",
 )

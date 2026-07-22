@@ -1,3 +1,9 @@
+# AI Finnie Agent — configuration
+#
+# Conventions mirror the companion AI-Billing-Assistance project: UI branding,
+# lazy loading and tracing are all config-driven, so wording and behaviour are
+# editable without touching code.
+
 llm:
   model: "claude-opus-4-8"
   max_tokens: 2048
@@ -22,9 +28,66 @@ agents:
   fallback_message: "I apologize, but I'm unable to process your request at the moment. Please try again or rephrase your question."
 
 streamlit:
-  page_title: "AI Finance Assistant"
-  page_icon: "💰"
+  page_title: "AI Finnie Agent"
+  page_icon: "🪙"
   layout: "wide"
+
+  # Customer-facing branding — the app reads every label from here, so the
+  # service-desk voice can be re-worded without touching code.
+  branding:
+    app_name: "AI Finnie Agent"
+    tagline: >-
+      Welcome! Ask anything about investing, your portfolio, markets, goals or
+      taxes in plain English — Finnie explains it in minutes, in words that
+      make sense.
+    # Sidebar identity block: the assistant presented as a named analyst.
+    sidebar_title: "AI Finnie Agent"
+    sidebar_icon: "🕵️"
+    sidebar_role: "Personal Finance Analyst"
+    tab_labels:
+      home: "🏠 Welcome Desk"
+      chat: "💬 Ask Finnie"
+      portfolio: "📊 My Portfolio"
+      market: "📈 Market Watch"
+      goals: "🎯 Goal Planner"
+    # Capabilities listed in the sidebar. Icon + name + one-line blurb each.
+    sidebar_agents:
+      - icon: "🎓"
+        name: "Finance Q&A"
+        blurb: "Plain-English answers to money questions"
+      - icon: "📊"
+        name: "Portfolio Analysis"
+        blurb: "Allocation, diversification & AI review"
+      - icon: "📈"
+        name: "Market Analysis"
+        blurb: "Live quotes, history & stock explainers"
+      - icon: "🎯"
+        name: "Goal Planning"
+        blurb: "Projections and what-it-takes math"
+      - icon: "📰"
+        name: "News Synthesizer"
+        blurb: "What today's headlines mean for you"
+      - icon: "🧾"
+        name: "Tax Education"
+        blurb: "How investment taxes actually work"
+
+  # Lazy loading. The page shell paints instantly; the AI engines (LangGraph +
+  # agents + sentence-transformers + FAISS + market data) load on demand:
+  # either when the first AI action runs, or when the user presses the preload
+  # button at the top of the page.
+  lazy_load:
+    enabled: true
+    preload_button_label: "⚡ Load AI engines now"
+
+# Execution tracing for debugging. Every query turn writes a tree of spans —
+# turn → graph nodes → model calls — as one JSON line per span. Inspect with
+# the Developer traces expander on the Welcome Desk, or:
+#   jq -s 'group_by(.trace_id)' logs/trace.jsonl
+tracing:
+  enabled: true
+  trace_log_path: logs/trace.jsonl
+  echo_to_console: false     # also log each completed span at INFO level
+  max_value_chars: 300       # clip long attribute values (queries, args)
 
 logging:
   level: "INFO"

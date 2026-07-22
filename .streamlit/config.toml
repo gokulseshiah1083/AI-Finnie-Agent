@@ -1,0 +1,25 @@
+# Streamlit's default file watcher walks every imported module's __path__.
+# sentence-transformers pulls in `transformers`, whose lazy module tree raises
+# on attribute access for optional backends (torchvision), producing a stream of
+# tracebacks at startup and a slow first render. We do not need hot-reload of
+# site-packages, so the watcher is scoped off.
+[server]
+fileWatcherType = "none"
+headless = true
+
+[browser]
+gatherUsageStats = false
+
+# Finance-desk palette, shared with the AI-Billing-Assistance project. A soft
+# desaturated off-white page keeps long reading sessions low-glare (pure white
+# is harsh next to data tables), while white secondary surfaces make cards,
+# inputs and the sidebar stand out against it. Charcoal text instead of pure
+# black lowers contrast fatigue; the primary blue matches the gradient section
+# banners in the app.
+[theme]
+base = "light"
+primaryColor = "#1F5FA8"            # bank blue — buttons, links, focus states
+backgroundColor = "#F4F5F7"         # soft off-white page background
+secondaryBackgroundColor = "#FFFFFF" # sidebar, inputs, expanders — white cards
+textColor = "#2B2D33"               # dark charcoal, softer than pure black
+font = "sans serif"

@@ -1,16 +1,22 @@
-"""Streamlit UI for the AI Finance Assistant.
+"""Streamlit UI for AI Finnie Agent.
+
+Styled as a finance service desk, sharing the design system of the companion
+AI-Billing-Assistance project: config-driven branding, gradient section
+banners, a segmented-control navigation, a pinned newest-first chat, and a
+"⚡ Load AI engines now" button at the top of the page.
 
 IMPORTANT — why this file is structured the way it is:
 
 The front page must load INSTANTLY. So the top of this module imports only
 light libraries (streamlit / pandas / plotly). The heavy backend — LangGraph,
 the six agents, sentence-transformers (which drags in torch), FAISS, and the
-market-data/yfinance stack — is imported LAZILY, only when the user clicks the
-"🚀 Load Data" button (or triggers an AI action). That is what keeps the home
+market-data/yfinance stack — is imported LAZILY, only when the user presses
+the preload button (or triggers an AI action). That is what keeps the home
 page from hanging or showing a blank screen on Streamlit Community Cloud.
 
-Every boot / load milestone is logged to stdout so you can watch progress in
-the "Manage app" log panel on Streamlit Cloud.
+Every boot / load milestone is logged to stdout, and every query turn writes a
+span tree to logs/trace.jsonl (see src/core/trace.py) — visible in the
+Developer traces expander on the Welcome Desk.
 """
 import os
 import sys
@@ -29,9 +35,14 @@ import plotly.graph_objects as go
 import plotly.express as px
 
 from src.core.config import CONFIG
+from src.core.trace import read_trace_entries, tracing_enabled
 from src.utils.logging_config import get_logger, boot
+from src.web_app.components import render_label_css, render_section_header
 
 log = get_logger("web_app")
+
+_BRANDING = CONFIG["streamlit"].get("branding", {})
+_LAZY = CONFIG["streamlit"].get("lazy_load", {})
 
 
 # ── set_page_config (guarded) ─────────────────────────────────────────────────
@@ -137,43 +148,27 @@ def _init_session_state():
 
 def _render_sidebar():
     with st.sidebar:
-        st.title("💰 AI Finance Assistant")
-        st.markdown("*Your intelligent financial education companion*")
-        st.divider()
-
-        # ── The Load Data button ──────────────────────────────────────────────
-        st.markdown("**Backend status**")
-        if st.session_state.backend_ready:
-            st.success("✅ AI backend loaded")
-        else:
-            st.info("💤 AI backend not loaded yet")
-
-        if st.button("🚀 Load Data", use_container_width=True, type="primary"):
-            log.info("User clicked 'Load Data'.")
-            ensure_backend()
-            st.rerun()
-
-        st.caption(
-            "The home page loads instantly. Click **Load Data** to spin up the "
-            "AI models and live market data (needed for Chat, Market & AI advice)."
-        )
-
-        st.divider()
-        st.markdown("**Agents available:**")
+        # Identity block: the assistant presented as a named analyst.
         st.markdown(
-            "- 🎓 Finance Q&A\n"
-            "- 📊 Portfolio Analysis\n"
-            "- 📈 Market Analysis\n"
-            "- 🎯 Goal Planning\n"
-            "- 📰 News Synthesizer\n"
-            "- 🧾 Tax Education\n"
+            f"## {_BRANDING.get('sidebar_icon', '🕵️')} "
+            f"{_BRANDING.get('sidebar_title', 'AI Finnie Agent')}"
         )
-        st.divider()
-        st.caption("⚠️ For educational purposes only. Not financial advice.")
-        if st.button("🗑️ Clear Conversation", use_container_width=True):
+        st.caption(_BRANDING.get("sidebar_role", "Personal Finance Analyst"))
+
+        if st.button("🔄 New conversation", use_container_width=True):
             st.session_state.messages = []
             st.session_state.session_id = str(uuid.uuid4())
             st.rerun()
+
+        st.divider()
+        st.subheader("Agents available")
+        for agent in _BRANDING.get("sidebar_agents", []):
+            st.markdown(f"{agent.get('icon', '•')} **{agent.get('name', '')}**")
+            if agent.get("blurb"):
+                st.caption(agent["blurb"])
+
+        st.divider()
+        st.caption("⚠️ For educational purposes only. Not financial advice.")
 
 
 def _backend_gate(feature: str) -> bool:
@@ -181,83 +176,144 @@ def _backend_gate(feature: str) -> bool:
     Returns True if the backend is ready to use."""
     if st.session_state.backend_ready:
         return True
-    st.info(f"⚡ **{feature}** needs the AI backend. Click **🚀 Load Data** in the "
-            "sidebar (or the button below) to get started.")
-    if st.button(f"🚀 Load Data to enable {feature}", key=f"load_{feature}"):
+    st.info(f"⚡ **{feature}** needs the AI engines. Press **⚡ Load AI engines "
+            "now** at the top of the page (or the button below) to get started.")
+    if st.button(f"⚡ Load AI engines to enable {feature}", key=f"load_{feature}"):
         ensure_backend()
         st.rerun()
     return False
 
 
 def _render_home_tab():
-    st.header("🏠 Welcome")
-    st.markdown(
-        "This is a multi-agent financial-education assistant. The page you're "
-        "looking at loaded **without** touching any heavy AI libraries — that's on purpose."
+    render_section_header(
+        "Welcome to your finance desk",
+        "Finnie is a team of six specialist agents for money questions, "
+        "portfolios, markets, goals, news and taxes — in plain English.",
+        "🏠",
     )
     c1, c2 = st.columns(2)
     with c1:
-        st.subheader("What works right now")
+        st.subheader("Works instantly")
         st.markdown(
-            "- 📊 **Portfolio** metrics & charts (pure math)\n"
-            "- 🎯 **Goal** projections & charts (pure math)\n"
+            "- 📊 **My Portfolio** metrics & charts (pure math)\n"
+            "- 🎯 **Goal Planner** projections & charts (pure math)\n"
         )
     with c2:
-        st.subheader("What needs Load Data")
+        st.subheader("Needs the AI engines")
         st.markdown(
-            "- 💬 **Chat** with the AI agents\n"
-            "- 📈 **Live Market** data\n"
+            "- 💬 **Ask Finnie** — chat with the agents\n"
+            "- 📈 **Market Watch** — live market data\n"
             "- 🤖 Any *“Analyze / Ask AI”* button\n"
         )
-    st.divider()
-    if st.session_state.backend_ready:
-        st.success("✅ AI backend is loaded — every tab is fully enabled.")
-    else:
-        st.warning("💤 AI backend is not loaded yet.")
-        if st.button("🚀 Load Data now", type="primary"):
-            ensure_backend()
-            st.rerun()
+
+    # Developer traces — the debugging window into every query turn.
+    if tracing_enabled():
+        with st.expander("🔬 Developer traces (span-level timing)", expanded=False):
+            st.caption(
+                "One row per completed span. Rows sharing a `trace_id` belong to "
+                "the same query turn: turn → graph nodes → model calls. Full "
+                "detail lives in `logs/trace.jsonl`."
+            )
+            traces = read_trace_entries(limit=200)
+            if not traces:
+                st.info("No traces yet — ask Finnie a question first.", icon="ℹ️")
+            else:
+                st.dataframe(
+                    [
+                        {
+                            "ts": t.get("ts"),
+                            "trace_id": t.get("trace_id"),
+                            "span": t.get("name"),
+                            "duration_ms": t.get("duration_ms"),
+                            "status": t.get("status"),
+                            "route": t.get("route") or t.get("agent_used"),
+                            "model": t.get("model"),
+                            "tokens_out": t.get("output_tokens"),
+                            "error": t.get("error"),
+                        }
+                        for t in traces
+                    ],
+                    use_container_width=True,
+                    hide_index=True,
+                )
 
 
 def _render_chat_tab():
-    st.header("Chat with your Financial Assistant")
+    render_section_header(
+        "How can Finnie help you today?",
+        "Ask about investing, your portfolio, markets, goals or taxes — in "
+        "your own words. The right specialist agent picks it up automatically.",
+        "💬",
+    )
 
-    for msg in st.session_state.messages:
-        role = msg["role"]
-        with st.chat_message(role):
-            st.markdown(msg["content"])
-            if role == "assistant" and msg.get("agent"):
-                st.caption(f"Agent: {msg['agent'].replace('_', ' ').title()}")
+    # Popular requests: ALWAYS visible at the top, re-clickable after every
+    # response — not just on an empty conversation.
+    st.markdown("**Popular questions — tap one any time:**")
+    examples = [
+        "What's the difference between a Roth IRA and a traditional IRA?",
+        "Analyze my portfolio and tell me what to improve",
+        "How do capital gains taxes work when I sell a stock?",
+        "Is now a reasonable time for a beginner to start investing?",
+    ]
+    columns = st.columns(2)
+    for index, example in enumerate(examples):
+        if columns[index % 2].button(example, key=f"ex_{index}", use_container_width=True):
+            st.session_state.pending_query = example
+            st.rerun()
 
-    prompt = st.chat_input("Ask anything about investing, stocks, taxes, or financial planning...")
+    # The input box lives HERE, directly under the popular questions, and stays
+    # here: history renders newest-first below it, so asking the next question
+    # never requires scrolling.
+    prompt = st.chat_input("Ask anything about investing, stocks, taxes, or financial planning…")
+    if not prompt and "pending_query" in st.session_state:
+        prompt = st.session_state.pop("pending_query")
+
     if prompt:
         log.info("Chat prompt received: %r", prompt[:120])
         st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                backend = ensure_backend()  # auto-loads on first use
-                result = backend["run_query"](
-                    user_query=prompt,
-                    session_id=st.session_state.session_id,
-                    portfolio_data={"holdings": st.session_state.portfolio_holdings}
-                    if st.session_state.portfolio_holdings else None,
-                )
-            log.info("Chat answered by agent=%s", result.get("agent_used"))
-            st.markdown(result["response"])
-            st.caption(f"Agent: {result['agent_used'].replace('_', ' ').title()}")
-
+        with st.spinner("Thinking…"):
+            backend = ensure_backend()  # auto-loads on first use
+            result = backend["run_query"](
+                user_query=prompt,
+                session_id=st.session_state.session_id,
+                portfolio_data={"holdings": st.session_state.portfolio_holdings}
+                if st.session_state.portfolio_holdings else None,
+            )
+        log.info("Chat answered by agent=%s", result.get("agent_used"))
         st.session_state.messages.append({
             "role": "assistant",
             "content": result["response"],
             "agent": result["agent_used"],
         })
+        # Fall through: the turn just appended renders first in the loop below.
+
+    # History, newest turn first. Messages are grouped into turns (a user
+    # message plus the assistant reply) so each Q&A stays in reading order
+    # even though the turns themselves are reversed.
+    turns: list[list[dict]] = []
+    for msg in st.session_state.messages:
+        if msg["role"] == "user" or not turns:
+            turns.append([])
+        turns[-1].append(msg)
+
+    if turns:
+        st.caption("Latest first — your newest answer is always right here at the top.")
+    for turn in reversed(turns):
+        for msg in turn:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+                if msg["role"] == "assistant" and msg.get("agent"):
+                    st.caption(f"Agent: {msg['agent'].replace('_', ' ').title()}")
+        st.divider()
 
 
 def _render_portfolio_tab():
-    st.header("Portfolio Analysis")
+    render_section_header(
+        "Your portfolio, at a glance",
+        "Add holdings to see value, allocation and diversification instantly — "
+        "pure math, no AI engines needed. AI review is one button away.",
+        "📊",
+    )
     col1, col2 = st.columns([1, 2])
 
     with col1:
@@ -337,7 +393,12 @@ def _render_portfolio_tab():
 
 
 def _render_market_tab():
-    st.header("Market Overview")
+    render_section_header(
+        "Markets, right now",
+        "Live index levels, stock lookups and price history — with a "
+        "plain-English AI explainer for any ticker.",
+        "📈",
+    )
 
     if not _backend_gate("Live market data"):
         return
@@ -414,7 +475,12 @@ def _render_market_tab():
 
 
 def _render_goals_tab():
-    st.header("Financial Goal Planner")
+    render_section_header(
+        "Plan the goal, see the path",
+        "Set a target and see the projection instantly — how much, how long, "
+        "and what it takes monthly. AI advice on top when you want it.",
+        "🎯",
+    )
     col1, col2 = st.columns([1, 1])
 
     with col1:
@@ -500,20 +566,58 @@ def render():
     boot("web_app.render(): building UI shell (no heavy imports here)")
     _init_session_state()
     _render_sidebar()
+    render_label_css()
 
-    tab_home, tab_chat, tab_portfolio, tab_market, tab_goals = st.tabs(
-        ["🏠 Home", "💬 Chat", "📊 Portfolio", "📈 Market", "🎯 Goals"]
+    st.title(
+        f"{CONFIG['streamlit']['page_icon']} "
+        f"{_BRANDING.get('app_name', CONFIG['streamlit']['page_title'])}"
     )
-    with tab_home:
-        _render_home_tab()
-    with tab_chat:
-        _render_chat_tab()
-    with tab_portfolio:
-        _render_portfolio_tab()
-    with tab_market:
-        _render_market_tab()
-    with tab_goals:
-        _render_goals_tab()
+    st.caption(_BRANDING.get("tagline", "Your intelligent financial education companion."))
+
+    # Engine status + on-demand loading, at the top of the page. The engines
+    # load lazily on the first AI action; the button pulls that cost forward
+    # at a moment the user chooses.
+    if st.session_state.backend_ready:
+        st.caption("✅ AI engines loaded — every view is fully enabled.")
+    else:
+        status_col, button_col = st.columns([3, 1])
+        status_col.caption(
+            "AI engines start on your first question — or load them now, "
+            "at a moment you choose."
+        )
+        if _LAZY.get("enabled", True):
+            if button_col.button(
+                _LAZY.get("preload_button_label", "⚡ Load AI engines now"),
+                use_container_width=True,
+            ):
+                log.info("User clicked the preload button.")
+                ensure_backend()
+                st.rerun()
+
+    # Navigation is a segmented control (radio fallback) rather than st.tabs,
+    # matching the companion billing project — and keeping the door open for
+    # programmatic view switching via session state.
+    labels = _BRANDING.get("tab_labels", {})
+    views = {
+        labels.get("home", "🏠 Welcome Desk"): _render_home_tab,
+        labels.get("chat", "💬 Ask Finnie"): _render_chat_tab,
+        labels.get("portfolio", "📊 My Portfolio"): _render_portfolio_tab,
+        labels.get("market", "📈 Market Watch"): _render_market_tab,
+        labels.get("goals", "🎯 Goal Planner"): _render_goals_tab,
+    }
+    if "pending_view" in st.session_state:
+        st.session_state.nav_view = st.session_state.pop("pending_view")
+    view_names = list(views)
+    st.session_state.setdefault("nav_view", view_names[0])
+    if hasattr(st, "segmented_control"):
+        selected = st.segmented_control(
+            "View", view_names, key="nav_view", label_visibility="collapsed"
+        )
+    else:
+        selected = st.radio(
+            "View", view_names, key="nav_view", horizontal=True, label_visibility="collapsed"
+        )
+    views[selected or view_names[0]]()
     boot("web_app.render(): UI shell built")
 
 

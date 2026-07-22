@@ -1,10 +1,48 @@
-# AI Finance Assistant
+# AI Finnie Agent
 
-AI Finance Assistant is a multi-agent financial education platform designed to help users explore investing, portfolio analysis, market trends, financial planning, and tax concepts through a conversational interface. Built with Python, Streamlit, LangGraph, and large language models, it combines structured financial reasoning with retrieval-augmented guidance.
+AI Finnie Agent is a multi-agent financial education platform designed to help users explore investing, portfolio analysis, market trends, financial planning, and tax concepts through a conversational interface. Built with Python, Streamlit, LangGraph, and large language models, it combines structured financial reasoning with retrieval-augmented guidance.
+
+Finnie shares its design system with the companion
+[AI-Billing-Assistance](https://github.com/gokulseshiah1083/AI-Billing-Assistance)
+project: the same service-desk styling, config-driven branding, lazy loading,
+and execution tracing — so both codebases read, look, and debug the same way.
 
 ## Overview
 
 The system is organized around a simple principle: route each user question to the most appropriate specialist, then enrich the response with the right context. This allows the assistant to provide targeted answers instead of relying on a single general-purpose model for every request.
+
+## Design system (shared with AI-Billing-Assistance)
+
+**Service-desk UI.** The app presents as a finance desk: a light theme with a
+soft off-white page and bank-blue accents (`.streamlit/config.toml`), gradient
+section banners on every view (`src/web_app/components.py`), and a sidebar
+identity block — "🕵️ AI Finnie Agent, Personal Finance Analyst" — above a
+config-driven list of the six agents. Every label, tab name and tagline lives
+under `streamlit.branding` in `config.yaml`, so the voice is re-wordable
+without touching code.
+
+**Navigation** is a segmented control rather than `st.tabs`, driven by session
+state — visually the same, but programmatically switchable (`pending_view`),
+which the billing project uses for flow redirects.
+
+**Chat, newest-first.** Popular questions are pinned at the top of Ask Finnie
+and stay clickable after every response; the input box sits directly beneath
+them and never moves; history renders latest-turn-first, so you never scroll
+to ask the next question.
+
+**Lazy loading with an explicit preload.** The page shell paints instantly;
+the heavy stack (LangGraph, sentence-transformers/torch, FAISS, market data)
+loads on the first AI action or via the "⚡ Load AI engines now" button at the
+top of the page. Configured under `streamlit.lazy_load`.
+
+**Execution tracing.** Every query turn writes a span tree to
+`logs/trace.jsonl` — `turn` → `node:classifier` / `node:<agent>` → `llm`
+(with token counts) — one JSON line per span, each carrying `trace_id`,
+`parent_span_id`, `duration_ms` and `status`. Dependency-free
+(`src/core/trace.py`), fail-safe (a broken trace path never breaks an
+answer), configured under `tracing:`, and viewable in the **Developer traces**
+expander on the Welcome Desk or with
+`jq -s 'group_by(.trace_id)' logs/trace.jsonl`.
 
 ## Architecture
 
