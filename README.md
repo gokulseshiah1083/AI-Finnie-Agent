@@ -62,6 +62,17 @@ LLM Response
 Streamlit Interface
 ```
 
+## Documentation
+
+Deeper design docs live alongside this README:
+
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** — C4-style Mermaid diagrams: system context,
+  container view, the per-turn agent loop, and the knowledge-base / market-data
+  fallback path.
+- **[DESIGN.md](DESIGN.md)** — the technical design in "decision → why → what it
+  cost" form: routing, the three agent patterns (RAG, deterministic compute, live
+  data), grounding, graceful degradation, and the educational-only safety boundary.
+
 ## Agent Overview
 
 | Agent | What it does | Sample prompt |
