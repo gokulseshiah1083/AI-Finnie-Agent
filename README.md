@@ -2,16 +2,11 @@
 
 AI Finnie Agent is a multi-agent financial education platform designed to help users explore investing, portfolio analysis, market trends, financial planning, and tax concepts through a conversational interface. Built with Python, Streamlit, LangGraph, and large language models, it combines structured financial reasoning with retrieval-augmented guidance.
 
-Finnie shares its design system with the companion
-[AI-Billing-Assistance](https://github.com/gokulseshiah1083/AI-Billing-Assistance)
-project: the same service-desk styling, config-driven branding, lazy loading,
-and execution tracing — so both codebases read, look, and debug the same way.
-
 ## Overview
 
 The system is organized around a simple principle: route each user question to the most appropriate specialist, then enrich the response with the right context. This allows the assistant to provide targeted answers instead of relying on a single general-purpose model for every request.
 
-## Design system (shared with AI-Billing-Assistance)
+## Design system
 
 **Service-desk UI.** The app presents as a finance desk: a light theme with a
 soft off-white page and bank-blue accents (`.streamlit/config.toml`), gradient
@@ -22,8 +17,8 @@ under `streamlit.branding` in `config.yaml`, so the voice is re-wordable
 without touching code.
 
 **Navigation** is a segmented control rather than `st.tabs`, driven by session
-state — visually the same, but programmatically switchable (`pending_view`),
-which the billing project uses for flow redirects.
+state — visually the same, but programmatically switchable (`pending_view`) for
+flow redirects.
 
 **Chat, newest-first.** Popular questions are pinned at the top of Ask Finnie
 and stay clickable after every response; the input box sits directly beneath
