@@ -70,8 +70,8 @@ answers: **numbers are computed in Python; the LLM only interprets them.**
 
 The system prompts instruct the agents to *interpret* the provided figures, not to recompute them. An
 LLM asked to do compound-interest arithmetic in prose will sometimes be confidently wrong; a Python
-function will not. This mirrors the companion billing project's "report the numbers the tools
-returned, never recompute them" rule.
+function will not. The rule is simple: report the numbers the code computed, never recompute them in
+the answer.
 
 Cost: the compute agents can only answer what their functions express. A novel analytical question
 needs new code, not just a new prompt. Acceptable for a system whose numbers must be trustworthy.
@@ -131,9 +131,9 @@ deliberate touches:
 - **Graceful failure.** Any exception from the API returns a friendly fallback string rather than
   propagating — consistent with the "never hard-fail a turn" posture.
 
-This is intentionally simpler than the companion billing project's effort-tiered, family-branching
-client: Finnie's agents differ in *evidence*, not in reasoning depth, so one model with good prompts
-fits. If cost or latency later demands tiering, the config-driven client is where it would go.
+The model client is intentionally kept simple — no effort tiers, no per-agent model families:
+Finnie's agents differ in *evidence*, not in reasoning depth, so one model with good prompts fits. If
+cost or latency later demands tiering, the config-driven client is where it would go.
 
 ---
 
