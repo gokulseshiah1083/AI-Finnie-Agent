@@ -428,6 +428,7 @@ def _render_market_tab():
                     delta=f"{change:+.2f}% (1mo)",
                     delta_color=color,
                 )
+                st.caption(f"via {data.get('source', 'unknown source')}")
 
     st.divider()
     st.subheader("Stock Lookup")
@@ -446,11 +447,16 @@ def _render_market_tab():
         if info:
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("Price", f"${info['current_price']:,.2f}")
-            c2.metric("1-Month Change", f"{info['monthly_change_pct']:+.2f}%")
+            monthly_change = info.get("monthly_change_pct")
+            c2.metric(
+                "1-Month Change",
+                f"{monthly_change:+.2f}%" if monthly_change is not None else "N/A",
+            )
             if info.get("yearly_change_pct") is not None:
                 c3.metric("1-Year Change", f"{info['yearly_change_pct']:+.2f}%")
             if info.get("pe_ratio"):
                 c4.metric("P/E Ratio", f"{info['pe_ratio']:.1f}")
+            st.caption(f"Data via {info.get('source', 'unknown source')}")
 
             hist = backend["get_price_history"](lookup_ticker.upper(), period="6mo")
             if hist is not None:

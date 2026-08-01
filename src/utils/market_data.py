@@ -235,7 +235,17 @@ def get_stock_info(ticker: str) -> Optional[dict]:
         if _is_fresh(ts):
             return data
 
-    result = _av_get_stock_info(ticker) or _yf_get_stock_info(ticker)
+    result = _av_get_stock_info(ticker)
+    # Alpha Vantage makes three separate calls (quote, overview, time series) to
+    # build one info dict. A rate limit or transient failure on just the time
+    # series call still leaves a truthy dict with monthly_change_pct=None — that
+    # used to short-circuit the "or" below and skip the yfinance fallback
+    # entirely. Treat a missing monthly_change_pct as an incomplete AV result
+    # and prefer a full yfinance result when one is available.
+    if not result or result.get("monthly_change_pct") is None:
+        fallback = _yf_get_stock_info(ticker)
+        if fallback:
+            result = fallback
     if result:
         _cache[ticker] = (time.time(), result)
     return result
