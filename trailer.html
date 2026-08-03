@@ -313,7 +313,45 @@
 
   .caption-hint{
     position:absolute; top:14px; right:18px; z-index:20;
-    font-size:clamp(12px,1.6vw,14px); color:var(--muted2);
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.16);
+    border-radius:999px;
+    width:clamp(28px,4vw,34px); height:clamp(28px,4vw,34px);
+    display:flex; align-items:center; justify-content:center;
+    font-size:clamp(12px,1.8vw,15px);
+    cursor:pointer;
+    user-select:none;
+  }
+  .caption-hint:hover{ background:rgba(255,255,255,0.14); }
+
+  /* ---------- Start overlay (autoplay-audio gate) ---------- */
+  .start-overlay{
+    position:absolute; inset:0; z-index:40;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:14px;
+    background:rgba(5,10,20,0.68);
+    backdrop-filter:blur(3px);
+    cursor:pointer;
+    transition:opacity .5s ease;
+  }
+  .start-overlay.hide{ opacity:0; pointer-events:none; }
+  .play-btn{
+    width:clamp(64px,10vw,90px); height:clamp(64px,10vw,90px);
+    border-radius:50%;
+    background:linear-gradient(135deg, var(--teal), var(--teal-dark));
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 12px 34px rgba(0,168,150,0.45);
+    animation:pulse 2s ease-in-out infinite;
+  }
+  .play-btn svg{ width:38%; height:38%; margin-left:6%; }
+  .start-label{
+    font-family:'Space Grotesk'; font-weight:700;
+    color:var(--white); font-size:clamp(13px,2vw,17px);
+    letter-spacing:0.5px;
+  }
+  .start-sub{
+    font-size:clamp(10px,1.4vw,12px); color:var(--muted);
+    letter-spacing:1px;
   }
 
   @media (max-width:520px){
@@ -333,7 +371,15 @@
       <div class="rec-label"><span class="rec-dot"></span>FINNIE · TRAILER</div>
       <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
     </div>
-    <div class="caption-hint">🔇</div>
+    <div class="caption-hint" id="muteBtn">🔊</div>
+
+    <div class="start-overlay" id="startOverlay">
+      <div class="play-btn">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+      <div class="start-label display">PLAY WITH SOUND</div>
+      <div class="start-sub">AI FINNIE AGENT · 47s TRAILER</div>
+    </div>
 
     <!-- Scene 1 — Cold open -->
     <section class="scene" data-duration="3000">
@@ -438,6 +484,8 @@
   const progressFill = document.getElementById('progressFill');
   const sceneCount = document.getElementById('sceneCount');
   const replayBtn = document.getElementById('replayBtn');
+  const startOverlay = document.getElementById('startOverlay');
+  const muteBtn = document.getElementById('muteBtn');
   let timers = [];
 
   function clearTimers(){ timers.forEach(t => clearTimeout(t)); timers = []; }
@@ -473,9 +521,184 @@
     timers.push(endTimer);
   }
 
-  replayBtn.addEventListener('click', playSequence);
+  /* =========================================================
+     Audio — an original, synthesized trailer score (Web Audio
+     API only; no external files, so nothing to license). Cues
+     are scheduled against the same scene timeline above so the
+     score hits every beat of the visual edit.
+     ========================================================= */
+  let audioCtx = null;
+  let masterGain = null;
+  let muted = false;
 
-  window.addEventListener('load', playSequence);
+  function tone(ctx, dest, {freq, type='sine', start, dur, peak=0.4, attack=0.02, freqEnd}){
+    const osc = ctx.createOscillator();
+    osc.type = type;
+    osc.frequency.setValueAtTime(Math.max(freq,1), start);
+    if(freqEnd){ osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd,1), start+dur); }
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.exponentialRampToValueAtTime(peak, start+attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, start+dur);
+    osc.connect(g); g.connect(dest);
+    osc.start(start); osc.stop(start+dur+0.05);
+  }
+
+  function noiseBurst(ctx, dest, {start, dur, peak=0.4, filterFreq=3000}){
+    const n = Math.max(1, Math.floor(ctx.sampleRate*dur));
+    const buffer = ctx.createBuffer(1, n, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<n;i++){ data[i] = (Math.random()*2-1) * (1 - i/n); }
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    const filt = ctx.createBiquadFilter();
+    filt.type = 'bandpass'; filt.frequency.value = filterFreq;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(peak, start);
+    g.gain.exponentialRampToValueAtTime(0.0001, start+dur);
+    src.connect(filt); filt.connect(g); g.connect(dest);
+    src.start(start);
+  }
+
+  function riser(ctx, dest, {start, dur, peak=0.5}){
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(80, start);
+    osc.frequency.exponentialRampToValueAtTime(900, start+dur);
+    const filt = ctx.createBiquadFilter();
+    filt.type = 'lowpass';
+    filt.frequency.setValueAtTime(400, start);
+    filt.frequency.exponentialRampToValueAtTime(4200, start+dur);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.exponentialRampToValueAtTime(peak, start+dur*0.9);
+    g.gain.exponentialRampToValueAtTime(0.0001, start+dur+0.15);
+    osc.connect(filt); filt.connect(g); g.connect(dest);
+    osc.start(start); osc.stop(start+dur+0.2);
+  }
+
+  function impactHit(ctx, dest, {start, peak=0.9}){
+    tone(ctx, dest, {freq:180, freqEnd:45, type:'sine', start, dur:0.5, peak, attack:0.005});
+    noiseBurst(ctx, dest, {start, dur:0.18, peak:peak*0.5, filterFreq:1200});
+  }
+
+  function chime(ctx, dest, {start, freq, peak=0.32, dur=0.9}){
+    tone(ctx, dest, {freq, type:'triangle', start, dur, peak, attack:0.01});
+    tone(ctx, dest, {freq:freq*2, type:'sine', start, dur:dur*0.6, peak:peak*0.4, attack:0.005});
+  }
+
+  function pluck(ctx, dest, {start, freq, peak=0.22}){
+    tone(ctx, dest, {freq, type:'triangle', start, dur:0.28, peak, attack:0.006});
+  }
+
+  function bassPulse(ctx, dest, {start, freq, peak=0.4}){
+    tone(ctx, dest, {freq, type:'triangle', start, dur:0.3, peak, attack:0.008});
+  }
+
+  function padDrone(ctx, dest, {start, end, freqs, peak=0.16}){
+    const filt = ctx.createBiquadFilter();
+    filt.type = 'lowpass'; filt.frequency.value = 1000;
+    filt.connect(dest);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.exponentialRampToValueAtTime(peak, start+1.4);
+    g.gain.setValueAtTime(peak, Math.max(start+1.4, end-1.6));
+    g.gain.exponentialRampToValueAtTime(0.0001, end);
+    g.connect(filt);
+    freqs.forEach(f=>{
+      const o = ctx.createOscillator();
+      o.type = 'sawtooth'; o.frequency.value = f;
+      o.connect(g);
+      o.start(start); o.stop(end+0.1);
+    });
+    const lfo = ctx.createOscillator(); lfo.frequency.value = 0.15;
+    const lfoGain = ctx.createGain(); lfoGain.gain.value = 260;
+    lfo.connect(lfoGain); lfoGain.connect(filt.frequency);
+    lfo.start(start); lfo.stop(end+0.1);
+  }
+
+  function scheduleTimeline(ctx, dest){
+    const t0 = ctx.currentTime + 0.05;
+    const at = s => t0 + s; // scene-timeline seconds -> AudioContext time
+
+    // Continuous cinematic bed under the whole 47s trailer (A2/E3/A3 power chord).
+    padDrone(ctx, dest, { start: at(0), end: at(47), freqs: [110, 164.81, 220], peak: 0.15 });
+
+    // Driving "heartbeat" bass pulse, alternating root/fifth, every 0.6s.
+    for(let s=0.3; s<46.6; s+=0.6){
+      const freq = (Math.round(s/0.6) % 2 === 0) ? 110 : 164.81;
+      bassPulse(ctx, dest, { start: at(s), freq, peak: 0.22 });
+    }
+
+    // Scene 1 — cold open impact (0:00)
+    impactHit(ctx, dest, { start: at(0), peak: 0.75 });
+
+    // Scene 2 — title chime (0:03)
+    chime(ctx, dest, { start: at(3.0), freq: 659.25, peak: 0.30 });
+
+    // Scene 3 — the challenge, slightly darker chime (0:08)
+    chime(ctx, dest, { start: at(8.0), freq: 523.25, peak: 0.28 });
+
+    // Scene 4 — riser into "WHAT IF", impact + shimmer on "SUPERPOWER" reveal (0:14 -> 0:15)
+    riser(ctx, dest, { start: at(13.2), dur: 1.0, peak: 0.5 });
+    impactHit(ctx, dest, { start: at(15.0), peak: 1.0 });
+    chime(ctx, dest, { start: at(15.05), freq: 880, peak: 0.4, dur: 1.1 });
+
+    // Scene 5 — "Meet Finnie" chime + ascending pluck run under the chip montage (0:20)
+    chime(ctx, dest, { start: at(20.0), freq: 698.46, peak: 0.30 });
+    [523.25, 587.33, 659.25, 698.46, 783.99, 880.00].forEach((f, i) => {
+      pluck(ctx, dest, { start: at(20.9 + i*0.25), freq: f, peak: 0.20 });
+    });
+
+    // Scene 6 — before (tense, low) / after (bright, resolved octave jump) (0:27)
+    chime(ctx, dest, { start: at(27.5), freq: 392.00, peak: 0.24 });
+    chime(ctx, dest, { start: at(27.85), freq: 784.00, peak: 0.32 });
+
+    // Scene 7 — three takeaway swaps, gently rising pitch (0:33)
+    [523.25, 587.33, 659.25].forEach((f, i) => {
+      chime(ctx, dest, { start: at([33.1, 34.65, 36.2][i]), freq: f, peak: 0.22, dur: 0.7 });
+    });
+
+    // Scene 8 — riser into "LIVE DEMO", impact, CTA chime (0:37 -> 0:38.9)
+    riser(ctx, dest, { start: at(37.0), dur: 1.0, peak: 0.55 });
+    impactHit(ctx, dest, { start: at(38.0), peak: 0.85 });
+    chime(ctx, dest, { start: at(38.9), freq: 880, peak: 0.34 });
+
+    // Scene 9 — end card resolve, fading with the pad to silence at 47s
+    chime(ctx, dest, { start: at(43.3), freq: 659.25, peak: 0.28, dur: 1.4 });
+  }
+
+  async function initAudioAndPlay(){
+    try{
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return; // unsupported browser — trailer still plays silently
+      if(audioCtx){ try{ await audioCtx.close(); }catch(e){} }
+      audioCtx = new Ctx();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = muted ? 0 : 0.9;
+      masterGain.connect(audioCtx.destination);
+      scheduleTimeline(audioCtx, masterGain);
+    }catch(e){ /* audio is a nice-to-have — never block the visual trailer */ }
+  }
+
+  function setMuted(next){
+    muted = next;
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+    if(masterGain && audioCtx){
+      masterGain.gain.linearRampToValueAtTime(muted ? 0 : 0.9, audioCtx.currentTime + 0.08);
+    }
+  }
+
+  muteBtn.addEventListener('click', () => setMuted(!muted));
+
+  function startTrailer(){
+    startOverlay.classList.add('hide');
+    initAudioAndPlay();
+    playSequence();
+  }
+
+  startOverlay.addEventListener('click', startTrailer);
+  replayBtn.addEventListener('click', startTrailer);
 </script>
 
 </body>
