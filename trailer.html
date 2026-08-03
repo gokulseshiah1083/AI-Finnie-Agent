@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Finnie Agent — Trailer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0B1F3A;
+    --navy2:#10294A;
+    --navy3:#1B3A63;
+    --teal:#00A896;
+    --teal-dark:#028090;
+    --amber:#F4A300;
+    --white:#FFFFFF;
+    --muted:#8FA3B8;
+    --muted2:#6E7F92;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    height:100%;
+    background:#000;
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow:hidden;
+  }
+  .display{
+    font-family:'Space Grotesk', 'Inter', sans-serif;
+    font-weight:700;
+  }
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    width:100vw;
+  }
+
+  /* ---------- Stage (16:9 "video player") ---------- */
+  .player-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+  }
+  .stage{
+    position:relative;
+    width:min(96vw, 177.7vh);
+    aspect-ratio:16/9;
+    max-height:88vh;
+    background:linear-gradient(160deg, var(--navy) 0%, #081627 100%);
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.06);
+  }
+
+  /* ambient animated orbs (brand motif, same as slide deck) */
+  .orb{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(2px);
+    opacity:0.35;
+    pointer-events:none;
+  }
+  .orb1{ width:38%; aspect-ratio:1; top:-14%; right:-10%; background:radial-gradient(circle, var(--teal) 0%, transparent 70%); animation:drift1 14s ease-in-out infinite; }
+  .orb2{ width:30%; aspect-ratio:1; bottom:-12%; left:-8%; background:radial-gradient(circle, var(--amber) 0%, transparent 70%); animation:drift2 16s ease-in-out infinite; }
+  @keyframes drift1{ 0%,100%{ transform:translate(0,0) scale(1);} 50%{ transform:translate(-3%,4%) scale(1.08);} }
+  @keyframes drift2{ 0%,100%{ transform:translate(0,0) scale(1);} 50%{ transform:translate(3%,-4%) scale(1.1);} }
+
+  /* ---------- Chrome: progress bar, labels ---------- */
+  .chrome-top{
+    position:absolute; top:0; left:0; right:0;
+    display:flex; align-items:center; gap:10px;
+    padding:14px 18px 0 18px;
+    z-index:20;
+  }
+  .progress-track{
+    flex:1;
+    height:3px;
+    background:rgba(255,255,255,0.16);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, var(--teal), var(--amber));
+    border-radius:3px;
+  }
+  .rec-label{
+    font-family:'Inter';
+    font-size:clamp(9px,1.3vw,11px);
+    letter-spacing:2px;
+    color:var(--muted);
+    font-weight:600;
+    white-space:nowrap;
+    display:flex; align-items:center; gap:6px;
+  }
+  .rec-dot{ width:6px; height:6px; border-radius:50%; background:var(--amber); animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+
+  .brand-mark{
+    position:absolute; left:18px; bottom:14px; z-index:20;
+    display:flex; align-items:center; gap:8px;
+    font-size:clamp(10px,1.4vw,12px);
+    color:var(--muted);
+    letter-spacing:1px;
+    font-weight:600;
+  }
+  .brand-mark .dot{ width:5px;height:5px;border-radius:50%;background:var(--teal); }
+  .scene-count{
+    position:absolute; right:18px; bottom:14px; z-index:20;
+    font-size:clamp(10px,1.4vw,12px);
+    color:var(--muted2);
+    font-variant-numeric:tabular-nums;
+    letter-spacing:1px;
+  }
+
+  /* ---------- Scenes ---------- */
+  .scene{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center;
+    padding:8% 8%;
+    opacity:0;
+    transition:opacity .45s ease;
+    pointer-events:none;
+    z-index:10;
+  }
+  .scene.active{ opacity:1; }
+
+  .kicker{
+    font-size:clamp(10px,1.6vw,14px);
+    letter-spacing:4px;
+    font-weight:700;
+    color:var(--amber);
+    margin-bottom:clamp(10px,2vh,18px);
+    opacity:0;
+  }
+  .scene.active .kicker{ animation:riseIn .6s ease forwards; animation-delay:.05s; }
+
+  .headline{
+    font-size:clamp(28px,6.2vw,64px);
+    line-height:1.08;
+    color:var(--white);
+    letter-spacing:-0.5px;
+  }
+  .headline .accent{ color:var(--teal); }
+  .headline .accent2{ color:var(--amber); }
+
+  .subline{
+    margin-top:clamp(10px,2vh,18px);
+    font-size:clamp(13px,2vw,19px);
+    color:var(--muted);
+    font-weight:500;
+    max-width:80%;
+  }
+  .cite{
+    margin-top:clamp(10px,1.6vh,14px);
+    font-size:clamp(10px,1.3vw,12px);
+    color:var(--muted2);
+    font-style:italic;
+  }
+
+  .line{ opacity:0; transform:translateY(16px); }
+  .scene.active .line{ animation:riseIn .6s ease forwards; }
+  .scene.active .line.d1{ animation-delay:.15s; }
+  .scene.active .line.d2{ animation-delay:.55s; }
+  .scene.active .line.d3{ animation-delay:1.0s; }
+  .scene.active .line.d4{ animation-delay:1.5s; }
+  @keyframes riseIn{ to{ opacity:1; transform:translateY(0); } }
+
+  /* Scene 1 — cold open stat */
+  .bignum{
+    font-size:clamp(60px,13vw,140px);
+    color:var(--amber);
+    line-height:1;
+    text-shadow:0 0 40px rgba(244,163,0,0.35);
+    opacity:0; transform:scale(0.85);
+  }
+  .scene.active .bignum{ animation:popIn .7s cubic-bezier(.2,.9,.25,1.2) forwards; }
+  @keyframes popIn{ to{ opacity:1; transform:scale(1); } }
+
+  /* Scene 2 — intro / title */
+  .hero-icon{
+    width:clamp(46px,8vw,72px); height:clamp(46px,8vw,72px);
+    border-radius:50%;
+    background:var(--navy3);
+    display:flex; align-items:center; justify-content:center;
+    font-size:clamp(22px,4vw,34px);
+    margin-bottom:clamp(10px,2vh,16px);
+    opacity:0; transform:scale(0.7);
+  }
+  .scene.active .hero-icon{ animation:popIn .6s cubic-bezier(.2,.9,.25,1.2) forwards; }
+  .wordmark{
+    font-size:clamp(30px,6.6vw,68px);
+    background:linear-gradient(90deg, var(--white), var(--teal) 70%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    letter-spacing:-1px;
+  }
+
+  /* Scene 5 — agent chip montage */
+  .chiprow{
+    display:flex; flex-wrap:wrap; gap:clamp(6px,1.2vw,12px);
+    justify-content:center;
+    margin-top:clamp(14px,2.4vh,22px);
+    max-width:92%;
+  }
+  .chip{
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.14);
+    border-radius:999px;
+    padding:clamp(6px,1vh,10px) clamp(10px,1.6vw,16px);
+    font-size:clamp(11px,1.6vw,15px);
+    color:var(--white);
+    font-weight:600;
+    opacity:0; transform:translateY(10px);
+  }
+  .scene.active .chip{ animation:riseIn .5s ease forwards; }
+  .scene.active .chip:nth-child(1){ animation-delay:.9s; }
+  .scene.active .chip:nth-child(2){ animation-delay:1.15s; }
+  .scene.active .chip:nth-child(3){ animation-delay:1.4s; }
+  .scene.active .chip:nth-child(4){ animation-delay:1.65s; }
+  .scene.active .chip:nth-child(5){ animation-delay:1.9s; }
+  .scene.active .chip:nth-child(6){ animation-delay:2.15s; }
+
+  /* Scene 6 — before / after */
+  .compare{
+    display:flex; align-items:center; justify-content:center;
+    gap:clamp(14px,3vw,36px);
+    margin-top:clamp(10px,2vh,18px);
+    width:100%;
+  }
+  .col{
+    flex:1; max-width:340px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:14px;
+    padding:clamp(12px,2vh,20px);
+    opacity:0; transform:translateY(14px);
+  }
+  .scene.active .col.before{ animation:riseIn .55s ease forwards; animation-delay:.5s; }
+  .scene.active .col.after{ animation:riseIn .55s ease forwards; animation-delay:.85s; }
+  .col h4{
+    font-family:'Space Grotesk'; font-size:clamp(12px,1.8vw,16px);
+    letter-spacing:1px; margin-bottom:clamp(8px,1.4vh,12px);
+  }
+  .col.before h4{ color:#F97066; }
+  .col.after h4{ color:var(--teal); }
+  .col p{ font-size:clamp(11px,1.6vw,14px); color:var(--muted); margin-bottom:6px; line-height:1.4; }
+  .arrow-between{
+    font-size:clamp(18px,3vw,30px); color:var(--amber);
+    opacity:0;
+  }
+  .scene.active .arrow-between{ animation:riseIn .5s ease forwards; animation-delay:.7s; }
+
+  /* Scene 7 — takeaway swap list */
+  .swaplist{ position:relative; height:clamp(70px,12vh,120px); width:100%; max-width:640px; margin-top:8px; }
+  .swap-item{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:clamp(18px,3.6vw,34px);
+    color:var(--white);
+    font-family:'Space Grotesk';
+    opacity:0;
+  }
+  .scene.active .swap-item:nth-child(1){ animation:swapIn 1.6s ease forwards; animation-delay:.1s; }
+  .scene.active .swap-item:nth-child(2){ animation:swapIn 1.6s ease forwards; animation-delay:1.65s; }
+  .scene.active .swap-item:nth-child(3){ animation:swapIn 1.6s ease forwards; animation-delay:3.2s; }
+  @keyframes swapIn{
+    0%{ opacity:0; transform:translateY(14px); }
+    12%{ opacity:1; transform:translateY(0); }
+    88%{ opacity:1; transform:translateY(0); }
+    100%{ opacity:0; transform:translateY(-14px); }
+  }
+
+  /* Scene 8 — CTA */
+  .cta-btn{
+    margin-top:clamp(14px,2.6vh,22px);
+    display:inline-flex; align-items:center; gap:10px;
+    background:linear-gradient(90deg, var(--teal), var(--teal-dark));
+    color:var(--white);
+    font-family:'Space Grotesk'; font-weight:700;
+    font-size:clamp(13px,2vw,18px);
+    padding:clamp(10px,1.8vh,16px) clamp(18px,3vw,30px);
+    border-radius:999px;
+    box-shadow:0 10px 30px rgba(0,168,150,0.35);
+    opacity:0; transform:translateY(10px);
+  }
+  .scene.active .cta-btn{ animation:riseIn .55s ease forwards; animation-delay:.9s; }
+  .glow-pulse{ animation:glowPulse 1.6s ease-in-out infinite; }
+  @keyframes glowPulse{ 0%,100%{ text-shadow:0 0 24px rgba(244,163,0,0.25);} 50%{ text-shadow:0 0 48px rgba(244,163,0,0.55);} }
+
+  /* Scene 9 — end card */
+  .endcard .hero-icon{ margin-bottom:10px; }
+  .end-name{ font-size:clamp(13px,2vw,17px); color:var(--white); font-weight:600; margin-top:4px; }
+  .end-link{ font-size:clamp(11px,1.6vw,14px); color:var(--teal); margin-top:2px; }
+  .replay-btn{
+    margin-top:clamp(16px,3vh,26px);
+    display:none;
+    align-items:center; gap:8px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.2);
+    color:var(--white);
+    font-family:'Inter'; font-weight:600; font-size:clamp(12px,1.6vw,14px);
+    padding:10px 20px; border-radius:999px;
+    cursor:pointer;
+  }
+  .replay-btn:hover{ background:rgba(255,255,255,0.14); }
+  .replay-btn.show{ display:inline-flex; animation:riseIn .5s ease forwards; }
+
+  .caption-hint{
+    position:absolute; top:14px; right:18px; z-index:20;
+    font-size:clamp(12px,1.6vw,14px); color:var(--muted2);
+  }
+
+  @media (max-width:520px){
+    .compare{ flex-direction:column; }
+    .arrow-between{ transform:rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="player-wrap">
+  <div class="stage" id="stage">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+
+    <div class="chrome-top">
+      <div class="rec-label"><span class="rec-dot"></span>FINNIE · TRAILER</div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="caption-hint">🔇</div>
+
+    <!-- Scene 1 — Cold open -->
+    <section class="scene" data-duration="3000">
+      <div class="bignum display">3.5B</div>
+      <div class="headline display line d1">people invest <span class="accent2">blind.</span></div>
+      <div class="subline line d2">Every single day.</div>
+    </section>
+
+    <!-- Scene 2 — Title / Intro -->
+    <section class="scene" data-duration="5000">
+      <div class="hero-icon">🕵️</div>
+      <div class="wordmark display">AI FINNIE AGENT</div>
+      <div class="subline line d1">Presented by <strong style="color:#fff">Gokul Seshiah</strong></div>
+      <div class="subline line d2" style="margin-top:4px;">Senior Director, Agentic AI &amp; Platform Engineering — HCLTech</div>
+      <div class="cite line d3">12 years @ Mastercard</div>
+    </section>
+
+    <!-- Scene 3 — The Challenge -->
+    <section class="scene" data-duration="6000">
+      <div class="kicker">THE CHALLENGE</div>
+      <div class="headline display line d1">Only 33% of adults worldwide</div>
+      <div class="headline display line d2">are <span class="accent">financially literate.</span></div>
+      <div class="cite line d4">— S&amp;P Global FinLit Survey</div>
+    </section>
+
+    <!-- Scene 4 — What if -->
+    <section class="scene" data-duration="6000">
+      <div class="headline display line d1">WHAT IF&hellip;</div>
+      <div class="headline display line d2">&hellip;everyone had a</div>
+      <div class="headline display line d3"><span class="accent2 glow-pulse">FINANCIAL SUPERPOWER ⚡</span></div>
+    </section>
+
+    <!-- Scene 5 — The Idea -->
+    <section class="scene" data-duration="7000">
+      <div class="kicker line d1">THE IDEA</div>
+      <div class="headline display line d1">Meet <span class="accent">Finnie.</span></div>
+      <div class="subline line d2">Six AI specialists. One conversation.</div>
+      <div class="chiprow">
+        <div class="chip">🎓 Finance Q&amp;A</div>
+        <div class="chip">📊 Portfolio</div>
+        <div class="chip">📈 Market</div>
+        <div class="chip">🎯 Goals</div>
+        <div class="chip">📰 News</div>
+        <div class="chip">🧾 Tax</div>
+      </div>
+    </section>
+
+    <!-- Scene 6 — Before / After -->
+    <section class="scene" data-duration="6000">
+      <div class="kicker line d1">THE TRANSFORMATION</div>
+      <div class="compare">
+        <div class="col before">
+          <h4 class="display">BEFORE</h4>
+          <p>Confusing jargon</p>
+          <p>Hours of research</p>
+          <p>Guessing, alone</p>
+        </div>
+        <div class="arrow-between">→</div>
+        <div class="col after">
+          <h4 class="display">AFTER</h4>
+          <p>Plain English</p>
+          <p>Minutes to clarity</p>
+          <p>An AI analyst, always on</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scene 7 — Takeaway -->
+    <section class="scene" data-duration="5000">
+      <div class="kicker line d1">WHAT YOU'LL TAKE AWAY</div>
+      <div class="swaplist">
+        <div class="swap-item">A working multi-agent AI system</div>
+        <div class="swap-item">An architecture you can reuse</div>
+        <div class="swap-item">Proof AI can teach, not just answer</div>
+      </div>
+    </section>
+
+    <!-- Scene 8 — Demo CTA -->
+    <section class="scene" data-duration="5000">
+      <div class="headline display line d1">LIVE DEMO <span class="accent2">— TODAY</span></div>
+      <div class="subline line d2">Watch Finnie answer real questions, live.</div>
+      <div class="cta-btn display">Let's dive in →</div>
+    </section>
+
+    <!-- Scene 9 — End card -->
+    <section class="scene endcard" data-duration="4000">
+      <div class="hero-icon">🕵️</div>
+      <div class="wordmark display" style="font-size:clamp(24px,5vw,46px)">AI FINNIE AGENT</div>
+      <div class="end-name">Gokul Seshiah</div>
+      <div class="end-link">linkedin.com/in/gokulseshiah</div>
+      <button class="replay-btn" id="replayBtn">⟲ Replay</button>
+    </section>
+
+    <div class="brand-mark"><span class="dot"></span>AI FINNIE AGENT</div>
+    <div class="scene-count" id="sceneCount">1 / 9</div>
+  </div>
+</div>
+
+<script>
+  const scenes = Array.from(document.querySelectorAll('.scene'));
+  const total = scenes.reduce((sum, s) => sum + parseInt(s.dataset.duration, 10), 0);
+  const progressFill = document.getElementById('progressFill');
+  const sceneCount = document.getElementById('sceneCount');
+  const replayBtn = document.getElementById('replayBtn');
+  let timers = [];
+
+  function clearTimers(){ timers.forEach(t => clearTimeout(t)); timers = []; }
+
+  function playSequence(){
+    clearTimers();
+    scenes.forEach(s => s.classList.remove('active'));
+    replayBtn.classList.remove('show');
+
+    // progress bar: animate 0 -> 100% over the full duration
+    progressFill.style.transition = 'none';
+    progressFill.style.width = '0%';
+    // force reflow so the transition restarts cleanly
+    void progressFill.offsetWidth;
+    progressFill.style.transition = 'width ' + (total/1000) + 's linear';
+    requestAnimationFrame(() => { progressFill.style.width = '100%'; });
+
+    let elapsed = 0;
+    scenes.forEach((scene, i) => {
+      const dur = parseInt(scene.dataset.duration, 10);
+      const startTimer = setTimeout(() => {
+        scenes.forEach(s => s.classList.remove('active'));
+        scene.classList.add('active');
+        sceneCount.textContent = (i+1) + ' / ' + scenes.length;
+      }, elapsed);
+      timers.push(startTimer);
+      elapsed += dur;
+    });
+
+    const endTimer = setTimeout(() => {
+      replayBtn.classList.add('show');
+    }, elapsed);
+    timers.push(endTimer);
+  }
+
+  replayBtn.addEventListener('click', playSequence);
+
+  window.addEventListener('load', playSequence);
+</script>
+
+</body>
+</html>
